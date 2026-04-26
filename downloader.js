@@ -83,6 +83,8 @@ function downloadSong(queryOrUrl, onStatus, onProgress, filenameHint = null) {
       '--newline',
       '--concurrent-fragments', '5',
       '--format', 'bestaudio/best',
+      '--extractor-args', 
+      'youtube:client=android',
     ];
 
     const proc = spawn('yt-dlp', args, { shell: true });
