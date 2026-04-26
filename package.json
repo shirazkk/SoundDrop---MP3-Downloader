@@ -1,0 +1,16 @@
+{
+  "name": "song-downloader",
+  "version": "1.0.0",
+  "description": "Download MP3 songs from the internet using Playwright browser automation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "playwright": "^1.49.0",
+    "ws": "^8.18.0",
+    "uuid": "^11.0.0"
+  }
+}
