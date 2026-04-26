@@ -4,7 +4,8 @@ const queueItems = new Map(); // jobId -> { card, data }
 
 /* ─── WebSocket ────────────────────────────────────────── */
 function connectWS() {
-  ws = new WebSocket(`ws://${location.host}`);
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${protocol}//${location.host}`);
   ws.onopen  = () => console.log('WS connected');
   ws.onclose = () => setTimeout(connectWS, 3000);
   ws.onerror = (e) => console.error('WS error', e);
