@@ -1,6 +1,7 @@
 /* ─── State ────────────────────────────────────────────── */
 let ws = null;
 const queueItems = new Map(); // jobId -> { card, data }
+const pendingSaveHandles = new Map(); // songName -> FileSystemFileHandle
 
 /* ─── WebSocket ────────────────────────────────────────── */
 function connectWS() {
@@ -24,7 +25,7 @@ function handleWSMessage(data) {
       updateOrCreateCard(data);
       showToast(`✓ Downloaded: ${data.songName}`);
       if (data.fileName) {
-        triggerBrowserDownload(data.fileName);
+        triggerBrowserDownload(data.fileName, data.songName);
       }
       break;
     case 'error':
@@ -57,7 +58,6 @@ function updateOrCreateCard(data) {
     card.className = `download-card status-${status}`;
     card.id = `card-${jobId}`;
     card.innerHTML = `
-      <div class="card-icon">🎵</div>
       <div class="card-body">
         <div class="card-song-name">${escHtml(songName)}</div>
         <div class="card-status">${escHtml(message)}</div>
@@ -114,7 +114,7 @@ async function performSearch() {
   const btn = document.getElementById('searchBtn');
   const resultsContainer = document.getElementById('searchResults');
   btn.disabled = true;
-  btn.textContent = 'Searching...';
+  btn.innerHTML = '<span class="btn-press-label">Pressing…</span><span class="btn-press-arrow">→</span>';
   resultsContainer.innerHTML = '';
   document.getElementById('autocompleteDropdown').classList.add('hidden');
 
@@ -133,16 +133,14 @@ async function performSearch() {
         <div class="result-card">
           <img src="${r.thumbnail}" class="result-thumb" alt="thumbnail" />
           <div class="result-info">
-            <div>
-              <div class="result-title" title="${escHtml(r.title)}">${escHtml(r.title)}</div>
-              <div class="result-meta">${escHtml(r.uploader)} • ${r.duration}</div>
-            </div>
-            <div class="result-actions">
-              <button class="btn-ghost" onclick="previewSong('${r.id}', this)">▶ Play</button>
-              <button class="btn-primary" onclick="downloadSpecificSong('${r.url}', '${escHtml(r.title)}')">⬇ Download</button>
-            </div>
-            <div class="player-container hidden"></div>
+            <div class="result-title" title="${escHtml(r.title)}">${escHtml(r.title)}</div>
+            <div class="result-meta">${escHtml(r.uploader)} · ${r.duration}</div>
           </div>
+          <div class="result-actions">
+            <button class="btn-link" onclick="previewSong('${r.id}', this)">Preview</button>
+            <button class="btn-mini" onclick="downloadSpecificSong('${r.url}', '${escHtml(r.title)}')">Press →</button>
+          </div>
+          <div class="player-container hidden"></div>
         </div>
       `).join('');
     }
@@ -151,28 +149,45 @@ async function performSearch() {
     showToast('Search failed.', true);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      Search`;
+    btn.innerHTML = '<span class="btn-press-label">Press it</span><span class="btn-press-arrow">→</span>';
   }
 }
 
 window.previewSong = function(videoId, btnEl) {
-  const container = btnEl.closest('.result-info').querySelector('.player-container');
+  const card = btnEl.closest('.result-card');
+  const container = card.querySelector('.player-container');
   if (container.classList.contains('hidden')) {
     container.innerHTML = `<iframe width="100%" height="80" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     container.classList.remove('hidden');
-    btnEl.innerHTML = '⏹ Stop';
+    btnEl.textContent = 'Stop';
+    btnEl.classList.add('is-playing');
   } else {
     container.innerHTML = '';
     container.classList.add('hidden');
-    btnEl.innerHTML = '▶ Play';
+    btnEl.textContent = 'Preview';
+    btnEl.classList.remove('is-playing');
   }
 };
 
 window.downloadSpecificSong = async function(url, title) {
+  // Ask the user WHERE to save BEFORE starting the download (must run inside the click handler)
+  if (window.showSaveFilePicker) {
+    try {
+      const safe = String(title).replace(/[\\/:*?"<>|]/g, '').trim() || 'song';
+      const handle = await window.showSaveFilePicker({
+        suggestedName: `${safe}.mp3`,
+        types: [{ description: 'MP3 Audio', accept: { 'audio/mpeg': ['.mp3'] } }]
+      });
+      pendingSaveHandles.set(title, handle);
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        showToast('Download cancelled.');
+        return;
+      }
+      console.error('Save picker failed:', err);
+    }
+  }
+
   showToast(`Starting download for ${title}...`);
   try {
     await fetch('/api/download', {
@@ -201,19 +216,33 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function triggerBrowserDownload(fileName) {
+async function triggerBrowserDownload(fileName, songName) {
   const url = `/api/serve-file?file=${encodeURIComponent(fileName)}`;
+
+  // If we already got a save handle when the user clicked Download, write to it
+  const handle = pendingSaveHandles.get(songName);
+  if (handle) {
+    pendingSaveHandles.delete(songName);
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch file');
+      const writable = await handle.createWritable();
+      await response.body.pipeTo(writable);
+      showToast(`Saved to chosen folder: ${fileName}`);
+      return;
+    } catch (err) {
+      console.error('Saving to chosen folder failed, falling back:', err);
+    }
+  }
+
+  // Fallback: browser default download folder
   const a = document.createElement('a');
   a.style.display = 'none';
   a.href = url;
-  // Use the HTML5 download attribute to prompt save
   a.download = fileName;
   document.body.appendChild(a);
   a.click();
-  // Cleanup
-  setTimeout(() => {
-    document.body.removeChild(a);
-  }, 100);
+  setTimeout(() => document.body.removeChild(a), 100);
 }
 
 /* ─── Event Listeners ──────────────────────────────────── */
@@ -248,10 +277,9 @@ document.addEventListener('DOMContentLoaded', () => {
     empty.id = 'emptyQueue';
     empty.className = 'empty-state';
     empty.innerHTML = `
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
-        <path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/>
-      </svg>
-      <p>No downloads yet. Search for a song above.</p>`;
+      <div class="empty-mark">∅</div>
+      <p class="empty-line">The floor is quiet.</p>
+      <p class="empty-sub">Search above to commission a pressing.</p>`;
     document.getElementById('queueList').appendChild(empty);
     queueItems.clear();
   });

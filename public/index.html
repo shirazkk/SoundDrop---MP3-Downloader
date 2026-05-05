@@ -3,93 +3,168 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SoundDrop - MP3 Downloader</title>
-  <meta name="description" content="Download any song as MP3 instantly. Search by name or batch download entire playlists and charts." />
+  <title>SoundDrop — The MP3 Press</title>
+  <meta name="description" content="A pressed-on-demand MP3 service. Search, listen, take it home." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;0,9..144,900;1,9..144,400;1,9..144,600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <!-- Animated BG -->
-  <div class="bg-mesh"></div>
-  <div class="bg-noise"></div>
+  <!-- Paper grain + corner stamps -->
+  <div class="paper-grain"></div>
+  <div class="page-frame">
+    <span class="corner tl">◤</span>
+    <span class="corner tr">◥</span>
+    <span class="corner bl">◣</span>
+    <span class="corner br">◢</span>
+  </div>
 
-  <!-- Header -->
-  <header class="header">
-    <div class="logo">
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <circle cx="16" cy="16" r="16" fill="url(#logoGrad)"/>
-        <path d="M12 10v12l10-6-10-6z" fill="#0a0a0f"/>
-        <defs>
-          <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
-            <stop offset="0%" stop-color="#00f0ff"/>
-            <stop offset="100%" stop-color="#ff006e"/>
-          </linearGradient>
-        </defs>
-      </svg>
-      <span class="logo-text">Sound<span class="logo-accent">Drop</span></span>
+  <!-- Top Marquee -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>★ PRESSED ON DEMAND ★ HIGH-FIDELITY MP3 ★ SEARCH · PREVIEW · TAKE IT HOME ★ EST. MMXXV ★ VOL. 01 ★ NO. 7 ★</span>
+      <span>★ PRESSED ON DEMAND ★ HIGH-FIDELITY MP3 ★ SEARCH · PREVIEW · TAKE IT HOME ★ EST. MMXXV ★ VOL. 01 ★ NO. 7 ★</span>
+    </div>
+  </div>
+
+  <!-- Header / Masthead -->
+  <header class="masthead">
+    <div class="mast-left">
+      <span class="mast-meta">VOL. 01 · NO. 7</span>
+      <span class="mast-meta">KARACHI · WORLDWIDE</span>
+    </div>
+    <a class="mast-logo" href="#">
+      <span class="logo-amp">&</span>
+      <span class="logo-title">Sound<em>drop</em></span>
+      <span class="logo-sub">— THE MP3 PRESS —</span>
+    </a>
+    <div class="mast-right">
+      <span class="mast-meta" id="clockMeta">--:--</span>
+      <span class="mast-meta">FREE / NON-COMMERCIAL</span>
     </div>
   </header>
 
+  <hr class="rule double" />
+
   <!-- Hero -->
   <section class="hero">
-    <p class="hero-eyebrow">Powered by yt-dlp</p>
-    <h1 class="hero-title">Download Any <span class="gradient-text">Song</span><br>As MP3</h1>
-    <p class="hero-sub">Search YouTube directly, preview, and download high-quality MP3s instantly.</p>
-
-    <!-- Search Card -->
-    <div class="search-card" id="searchCard">
-      <!-- Single Mode -->
-      <div class="search-panel" id="singlePanel">
-        <div class="search-row">
-          <div class="input-wrap autocomplete-wrapper">
-            <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              type="text"
-              id="songInput"
-              class="search-input"
-              placeholder="e.g. Tum Hi Ho, Kesariya, Shape of You..."
-              autocomplete="off"
-            />
-            <div id="autocompleteDropdown" class="autocomplete-dropdown hidden"></div>
+    <div class="hero-grid">
+      <aside class="hero-side hero-side-l">
+        <span class="kicker">№ 001</span>
+        <p class="side-note">
+          Type the song. Hear a snippet. We press a fresh MP3 the moment you ask.
+          No sign-up, no queue lines. <em>The needle does the rest.</em>
+        </p>
+        <div class="vinyl" aria-hidden="true">
+          <div class="vinyl-disc">
+            <div class="vinyl-grooves"></div>
+            <div class="vinyl-label">
+              <span>SIDE A</span>
+              <span class="vinyl-rpm">33⅓</span>
+            </div>
           </div>
-          <button id="searchBtn" class="btn-primary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            Search
-          </button>
         </div>
-        <div id="searchResults" class="search-results hidden"></div>
-        <p class="hint">Press Enter or click Search to find songs</p>
-      </div>
+      </aside>
+
+      <div class="hero-center">
+        <h1 class="display">
+          <span class="line-1">Songs,</span>
+          <span class="line-2">pressed</span>
+          <span class="line-3">to <em>order.</em></span>
+        </h1>
+        <p class="dek">
+          A small, obsessive jukebox for the open web — search YouTube,
+          preview the cut, and download a clean MP3 to wherever
+          on your machine you please.
+        </p>
+
+        <!-- Search -->
+        <div class="search-block" id="searchCard">
+          <div class="search-row">
+            <div class="input-wrap autocomplete-wrapper">
+              <span class="input-prefix">›</span>
+              <input
+                type="text"
+                id="songInput"
+                class="search-input"
+                placeholder="Tum Hi Ho · Kesariya · Shape of You · Northern Attitude…"
+                autocomplete="off"
+              />
+              <div id="autocompleteDropdown" class="autocomplete-dropdown hidden"></div>
+            </div>
+            <button id="searchBtn" class="btn-press">
+              <span class="btn-press-label">Press it</span>
+              <span class="btn-press-arrow">→</span>
+            </button>
+          </div>
+          <div class="search-foot">
+            <span class="hint"><kbd>⏎</kbd> to search · <kbd>esc</kbd> to clear</span>
+            <span class="hint right">Powered by yt-dlp · Audio @ best quality</span>
+          </div>
+          <div id="searchResults" class="search-results hidden"></div>
+        </div>
+      </aside>
+
+      <aside class="hero-side hero-side-r">
+        <span class="kicker right">№ 002</span>
+        <p class="side-note right">
+          Hit <strong>download</strong> on a result and your browser will ask
+          where to file it — desktop, USB, a folder named after a friend.
+          Wherever feels right.
+        </p>
+      </aside>
     </div>
   </section>
 
-  <!-- Queue / Progress -->
-  <section class="queue-section" id="queueSection">
-    <div class="section-header">
-      <h2 class="section-title">Download Queue</h2>
-      <button class="btn-ghost small" id="clearQueueBtn">Clear</button>
+  <hr class="rule" />
+
+  <!-- Queue -->
+  <section class="queue-section">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <span class="section-num">№ 003</span>
+        <h2 class="section-title">The <em>Pressing</em> Floor</h2>
+      </div>
+      <button class="btn-link" id="clearQueueBtn">Clear floor →</button>
     </div>
     <div id="queueList" class="queue-list">
       <div class="empty-state" id="emptyQueue">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
-          <path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/>
-        </svg>
-        <p>No downloads yet. Search for a song above.</p>
+        <div class="empty-mark">∅</div>
+        <p class="empty-line">The floor is quiet.</p>
+        <p class="empty-sub">Search above to commission a pressing.</p>
       </div>
     </div>
   </section>
 
+  <hr class="rule" />
+
+  <footer class="colophon">
+    <div class="colophon-inner">
+      <span>Set in <em>Fraunces</em> &amp; JetBrains Mono.</span>
+      <span class="dot">·</span>
+      <span>Pressed by <strong>Shiraz Ali</strong> in Karachi.</span>
+      <span class="dot">·</span>
+      <span>For private, non-commercial listening.</span>
+    </div>
+  </footer>
 
   <!-- Toast -->
   <div id="toast" class="toast"></div>
 
   <script src="app.js"></script>
+  <script>
+    // tiny clock for masthead
+    (function tick(){
+      const el = document.getElementById('clockMeta');
+      if (!el) return;
+      const d = new Date();
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      el.textContent = hh + ':' + mm;
+      setTimeout(tick, 30000);
+    })();
+  </script>
 </body>
 </html>
